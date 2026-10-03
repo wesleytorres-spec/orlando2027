@@ -1,8 +1,8 @@
 /* Cache do app para funcionar sem internet.
    Estratégia: mostra a versão salva na hora e atualiza em segundo plano
    (uma atualização publicada aparece na segunda vez que o app é aberto). */
-const CACHE = 'orlando2027-v1';
-const SHELL = ['./', './index.html', './bootstrap.min.css', './app.css', './supabase.js', './config.js', './dados.js', './app.js', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
+const CACHE = 'orlando2027-v3';
+const SHELL = ['./', './index.html', './bootstrap.min.css', './app.css', './supabase.js', './config.js', './dados.js', './ingles.js', './app.js', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

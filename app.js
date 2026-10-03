@@ -118,6 +118,10 @@ const fmtDate=(d,opt)=>dateObj(d).toLocaleDateString('pt-BR',opt||{day:'2-digit'
 function addDays(d,n){const x=dateObj(d);x.setDate(x.getDate()+n);return x.toISOString().slice(0,10)}
 const dowOf=d=>dateObj(d).getDay();
 
+const CASTLE_SVG=`<svg class="castle" viewBox="0 0 180 150" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="cw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E4DCFF"/></linearGradient><linearGradient id="cr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8B7CF0"/><stop offset="1" stop-color="#4B3CA8"/></linearGradient></defs><path d="M0 150 Q90 120 180 150Z" fill="#2A2161" opacity=".55"/><g fill="url(#cw)"><rect x="22" y="80" width="22" height="64"/><rect x="136" y="80" width="22" height="64"/><rect x="40" y="102" width="100" height="42"/><rect x="70" y="58" width="40" height="86"/><rect x="58" y="74" width="14" height="30"/><rect x="108" y="74" width="14" height="30"/></g><g fill="#FFFFFF">${[44,56,68,104,116,128].map(x=>`<rect x="${x}" y="96" width="8" height="7"/>`).join('')}</g><g fill="url(#cr)"><polygon points="17,82 33,40 49,82"/><polygon points="131,82 147,40 163,82"/><polygon points="64,60 90,8 116,60"/><polygon points="55,76 65,52 75,76"/><polygon points="105,76 115,52 125,76"/></g><path d="M80 144V124a10 10 0 0 1 20 0v20Z" fill="#2A2161"/><g fill="#FFD36B"><rect x="85" y="72" width="10" height="14" rx="5"/><rect x="29" y="98" width="8" height="11" rx="4"/><rect x="143" y="98" width="8" height="11" rx="4"/><rect x="61" y="84" width="7" height="9" rx="3.5"/><rect x="112" y="84" width="7" height="9" rx="3.5"/></g><g stroke="#FFE29A" stroke-width="1.5"><line x1="90" y1="8" x2="90" y2="0"/><line x1="33" y1="40" x2="33" y2="33"/><line x1="147" y1="40" x2="147" y2="33"/></g><g fill="#F49AC1"><path d="M90 0l12 3.5-12 3.5z"/><path d="M33 33l8 2.5-8 2.5z"/><path d="M147 33l8 2.5-8 2.5z"/></g></svg>`;
+const TWINKLES=[[8,14,0],[22,40,.8],[38,10,1.6],[52,30,.4],[64,8,2.2],[30,62,1.2],[12,78,2.6],[46,52,.2],[58,70,1.9]];
+const sceneDeco=()=>`<div class="rainbow"></div>${TWINKLES.map(([x,y,dl])=>`<span class="tw" style="left:${x}%;top:${y}%;animation-delay:${dl}s"></span>`).join('')}${CASTLE_SVG}`;
+
 /* ============ SINCRONIZAÇÃO: indicador ============ */
 function updateSync(){
   const el=$('#syncState');if(!el)return;
@@ -131,7 +135,7 @@ function updateSync(){
 }
 
 /* ============ NAVEGAÇÃO ============ */
-const VIEWS=['hoje','roteiro','explorar','check','mais'];
+const VIEWS=['hoje','roteiro','explorar','ingles','check','mais'];
 function go(v,push=true){
   if(!VIEWS.includes(v))v='hoje';
   VIEWS.forEach(n=>{$('#v-'+n).hidden=n!==v});
@@ -141,7 +145,7 @@ function go(v,push=true){
 }
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>go(b.dataset.v));
 const currentView=()=>VIEWS.find(v=>!$('#v-'+v).hidden)||'hoje';
-function render(v){({hoje:renderHoje,roteiro:renderRoteiro,explorar:renderExplorar,check:renderCheck,mais:renderMais})[v]()}
+function render(v){({hoje:renderHoje,roteiro:renderRoteiro,explorar:renderExplorar,ingles:renderIngles,check:renderCheck,mais:renderMais})[v]()}
 let needRender=false;
 function rerenderSoon(){
   const a=document.activeElement;
@@ -186,21 +190,14 @@ function feed(){
 }
 function renderHoje(){
   const now=orl(),di=dayIndexOf(now.date),hero=$('#hero'),body=$('#hojeBody');
+  const fl=`<div class="flight">${icon('airplane')}<b>GRU → MCO</b><span>09 jan · ${esc(VOO_IDA.sai)}</span></div>`;
   if(di<0){
-    hero.innerHTML=`<div class="pass"><div class="main">
-      <div class="eyebrow" style="color:var(--pass-lime)">Cartão de embarque · ${esc(VOO_IDA.cia)}</div>
-      <div class="route"><div class="iata">GRU<small>São Paulo</small></div><div class="line">${icon('airplane')}</div><div class="iata" style="text-align:right">MCO<small>Orlando</small></div></div>
-      <div class="meta tnum"><div><span>Data</span><b>09 JAN 27</b></div><div><span>Partida</span><b>${VOO_IDA.sai}</b></div><div><span>Chegada</span><b>${VOO_IDA.chega}</b></div></div>
-    </div><div class="stub"><div class="big tnum">${-di}</div><small>dias para<br>embarcar</small></div></div>`;
+    hero.innerHTML=`<div class="scene">${sceneDeco()}<div class="top"><div class="kick">Orlando &amp; Kissimmee</div><div class="count"><b class="tnum">${-di}</b><span>dias para<br>a magia começar</span></div></div><div class="bottom">${fl}</div></div>`;
   }else if(di<ITIN.length){
     const d=ITIN[di];
-    hero.innerHTML=`<div class="pass"><div class="main">
-      <div class="eyebrow" style="color:var(--pass-lime)">${DOW_LONG[now.dow]} · ${fmtDate(d[0],{day:'2-digit',month:'long'})}</div>
-      <div class="today-title">${esc(d[1])}</div>
-      <div class="meta"><div><span>Esforço</span><b>${EFFORT[d[2]]}</b></div><div><span>Hotel</span><b>Celebration</b></div><div><span>Volta</span><b>24/01</b></div></div>
-    </div><div class="stub"><div class="big tnum">${di+1}</div><small>dia de<br>${ITIN.length}</small></div></div>`;
+    hero.innerHTML=`<div class="scene">${sceneDeco()}<div class="top"><div class="kick">${DOW_LONG[now.dow]} · dia ${di+1} de ${ITIN.length}</div><div class="title">${esc(d[1])}</div></div><div class="bottom"><div class="flight">${icon('stars')}<b>Esforço: ${EFFORT[d[2]]}</b></div></div></div>`;
   }else{
-    hero.innerHTML=`<div class="pass"><div class="main"><div class="eyebrow" style="color:var(--pass-lime)">Viagem concluída</div><div class="today-title">Orlando 2027 ficou para a história.</div></div><div class="stub"><div class="big">16</div><small>dias</small></div></div>`;
+    hero.innerHTML=`<div class="scene">${sceneDeco()}<div class="top"><div class="kick">E viveram felizes</div><div class="title">Orlando 2027 ficou para a história.</div></div><div class="bottom"></div></div>`;
   }
   let h='';
   const showIdx=di<0?0:Math.min(di,ITIN.length-1);
@@ -352,7 +349,7 @@ function openPlace(id){
   const mn=META['nota:'+x.id];
   b+=`<div class="panel"><label class="eyebrow mb-2 d-block" for="plNote">Notas da família</label><textarea id="plNote" class="form-control" rows="3" data-note="${x.id}" placeholder="O que acharam, o que compraram, onde estacionaram…">${esc(noteOf(x.id))}</textarea>${mn&&mn.por?`<span class="by">Última edição: ${esc(mn.por)}, ${esc(quando(mn.em))}</span>`:''}</div>`;
   if(sameZone.length)b+=`<div class="panel"><div class="eyebrow mb-1">No mesmo trajeto · ${esc(x.zona)}</div>${sameZone.map(o=>placeMini(o,now)).join('')}</div>`;
-  const links=[x.url&&`<a class="btn btn-line" href="${x.url}" target="_blank" rel="noopener">${icon('globe2')}Site oficial</a>`,x.menuUrl&&`<a class="btn btn-line" href="${x.menuUrl}" target="_blank" rel="noopener">${icon('journal-text')}Cardápio</a>`,`<a class="btn btn-line" href="${gview(dest(x))}" target="_blank" rel="noopener">${icon('box-arrow-up-right')}Ver no mapa</a>`].filter(Boolean);
+  const links=[x.url&&`<a class="btn btn-line" href="${x.url}" target="_blank" rel="noopener">${icon('globe2')}Site oficial</a>`,x.menuUrl&&`<a class="btn btn-line" href="${x.menuUrl}" target="_blank" rel="noopener">${icon('journal-text')}Cardápio</a>`,`<a class="btn btn-line" href="${gview(dest(x))}" target="_blank" rel="noopener">${icon('box-arrow-up-right')}Ver no mapa</a>`,x.kind!=='passeios'&&`<button class="btn btn-line" data-isec="${x.kind==='compras'?'compras':'restaurante'}">${icon('translate')}Frases em inglês</button>`].filter(Boolean);
   b+=`<div class="d-grid gap-2" style="grid-template-columns:repeat(${Math.min(links.length,2)},1fr)">${links.join('')}</div>`;
   b+=`<p class="source m-0">Dados de referência (base de 03/10/2026). Horários podem mudar até janeiro de 2027.</p>`;
   openSheet({eye:`${x.kind==='compras'?'Compras':x.kind==='restaurantes'?'Restaurante':'Passeio'} · ${x.zona||''}`,title:x.nome,sub:x.cat+(x.local?' · '+x.local:''),body:b});
@@ -397,7 +394,7 @@ $('#ckAdd').addEventListener('submit',e=>{e.preventDefault();const v=$('#ckNew')
 /* ============ VIAGEM / CONTA ============ */
 function renderMais(){
   if(document.activeElement!==$('#tripNotes'))$('#tripNotes').value=KV['notas-viagem']||'';
-  $('#hotelActions').innerHTML=`<a class="btn btn-u" href="${gmaps(HOTEL.addr)}" target="_blank" rel="noopener">${icon('sign-turn-right')}Google</a><a class="btn btn-soft" href="${waze(HOTEL.addr)}" target="_blank" rel="noopener">${icon('signpost-split')}Waze</a><button class="btn btn-soft" data-copy="${esc(HOTEL.addr)}">${icon('copy')}Copiar</button>`;
+  $('#hotelActions').innerHTML=`<a class="btn btn-u" href="${gmaps(HOTEL.addr)}" target="_blank" rel="noopener">${icon('sign-turn-right')}Google</a><a class="btn btn-soft" href="${waze(HOTEL.addr)}" target="_blank" rel="noopener">${icon('signpost-split')}Waze</a><button class="btn btn-soft" data-copy="${esc(HOTEL.addr)}">${icon('copy')}Copiar</button><button class="btn btn-line" style="grid-column:1/-1" data-isec="hotel">${icon('translate')}Frases para o hotel</button>`;
   const acc=$('#account');
   if(!CONFIGURED){acc.innerHTML=`<div class="eyebrow mb-1">Família</div><p class="muted m-0" style="font-size:14px">O banco compartilhado ainda não foi configurado (arquivo <code>config.js</code>). Por enquanto, tudo fica salvo só neste aparelho.</p>`;return}
   acc.innerHTML=`<div class="eyebrow mb-1">Família</div>
@@ -440,11 +437,100 @@ function backupToKV(j){
   throw new Error('formato');
 }
 
+/* ============ INGLÊS ÚTIL ============ */
+const IFAV_KEY='orl27_frases_fav';
+let IFAV=new Set(lsGet(IFAV_KEY,[]));
+const IST={sec:'todas',q:''};
+const FR=[];
+INGLES.secoes.forEach(s=>s.grupos.forEach((g,gi)=>g.frases.forEach((f,k)=>FR.push({...f,id:`${s.id}:${gi}:${k}`,sec:s.id}))));
+const FRBY=Object.fromEntries(FR.map(f=>[f.id,f]));
+const canSpeak=typeof window!=='undefined'&&'speechSynthesis' in window&&typeof SpeechSynthesisUtterance!=='undefined';
+let voice=null;
+function pickVoice(){try{const vs=speechSynthesis.getVoices();voice=vs.find(v=>/en[-_]US/i.test(v.lang)&&/samantha|google|aria|jenny|natural|ava|allison/i.test(v.name))||vs.find(v=>/en[-_]US/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||null}catch(e){}}
+if(canSpeak){pickVoice();try{speechSynthesis.onvoiceschanged=pickVoice}catch(e){}}
+const sayText=f=>(f.en.includes(' — ')?f.en.split(' — ')[1]:f.en).replace(/\.\.\./g,'');
+function speak(f){
+  if(!canSpeak){toast('Áudio indisponível neste navegador');return}
+  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(sayText(f));u.lang='en-US';if(voice)u.voice=voice;u.rate=$('#slow').checked?0.6:0.9;speechSynthesis.speak(u)}catch(e){toast('Não foi possível tocar o áudio')}
+}
+function phrHtml(f){
+  const fav=IFAV.has(f.id);
+  return `<div class="phr"><div style="min-width:0"><div class="pt">${esc(f.pt)}</div><div class="en">${esc(f.en)}</div><div class="pr">${esc(f.pron)}</div></div>
+    <div class="acts">${canSpeak?`<button class="ibtn play" data-say="${f.id}">${icon('volume-up')}Ouvir</button>`:''}<button class="ibtn" data-show="${f.id}" aria-label="Mostrar em tela cheia">${icon('arrows-fullscreen')}</button><button class="ibtn ${fav?'on':''}" data-ifav="${f.id}" aria-label="${fav?'Remover das':'Adicionar às'} favoritas">${icon(fav?'star-fill':'star')}</button></div></div>`;
+}
+function tableHtml(t){return `<div class="reftable"><table><thead><tr>${t.cab.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${t.linhas.map(r=>`<tr>${r.map(c=>`<td class="tnum">${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`}
+function secHtml(s){
+  let h=`<div class="igroup"><h3 style="font-size:15px;color:var(--fg);letter-spacing:.04em">${icon(s.icone)} ${esc(s.titulo)}</h3>`;
+  if(s.dica)h+=`<div class="tip"><b>Dica</b>${esc(s.dica)}</div>`;
+  s.grupos.forEach((g,gi)=>{
+    if(g.titulo)h+=`<h3>${esc(g.titulo)}</h3>`;
+    h+=g.frases.map((f,k)=>phrHtml(FRBY[`${s.id}:${gi}:${k}`])).join('');
+    if(g.tabela)h+=tableHtml(g.tabela);
+  });
+  return h+'</div>';
+}
+function renderIngles(){
+  if($('#iq').value!==IST.q)$('#iq').value=IST.q;
+  const chips=[['todas','Todas',''],['fav','Favoritas','star'],...INGLES.secoes.map(s=>[s.id,s.titulo,s.icone])];
+  $('#ichips').innerHTML=chips.map(([k,l,ic])=>`<button class="chip" data-ichip="${k}" aria-pressed="${IST.sec===k}">${ic?icon(ic):''}${esc(l)}</button>`).join('');
+  renderIList();
+}
+function renderIList(){
+  const q=norm(IST.q);let h='';
+  if(q||IST.sec==='fav'){
+    let rows=FR;
+    if(IST.sec==='fav')rows=rows.filter(f=>IFAV.has(f.id));
+    else if(!q&&IST.sec!=='todas')rows=rows.filter(f=>f.sec===IST.sec);
+    if(q)rows=rows.filter(f=>norm(f.pt+' '+f.en+' '+f.pron).includes(q));
+    h=rows.map(phrHtml).join('')||`<div class="empty">${IST.sec==='fav'&&!q?'Toque na estrela de uma frase para guardá-la aqui.':'Nenhuma frase encontrada.'}</div>`;
+  }else{
+    h=INGLES.secoes.filter(s=>IST.sec==='todas'||s.id===IST.sec).map(secHtml).join('');
+  }
+  $('#ilist').innerHTML=h;
+}
+function showPhrase(f){
+  const el=$('#showx');
+  el.innerHTML=`<div class="s-pt">${esc(f.pt)}</div><div class="big-en">${esc(f.en)}</div><div class="s-pr">${esc(f.pron)}</div>
+    <div class="row-b">${canSpeak?`<button class="btn btn-u px-4" data-say="${f.id}">${icon('volume-up')}Ouvir</button>`:''}<button class="btn btn-line px-4" data-closeshow>${icon('x-lg')}Fechar</button></div>`;
+  el.hidden=false;document.body.style.overflow='hidden';
+}
+function closeShow(){$('#showx').hidden=true;if(!sheetOpen())document.body.style.overflow=''}
+function openGuia(){
+  openSheet({eye:'Inglês útil',title:'Como ler a pronúncia',sub:'Sílabas separadas por “·”; o acento marca a sílaba mais forte.',body:`<div class="reftable"><table><thead><tr><th>Símbolo</th><th>Como soar</th><th>Exemplo</th></tr></thead><tbody>${INGLES.guia.map(g=>`<tr><td><b>${esc(g.simbolo)}</b></td><td style="text-align:left">${esc(g.som)}</td><td>${esc(g.exemplo)}</td></tr>`).join('')}</tbody></table></div>`});
+}
+$('#iq').addEventListener('input',e=>{IST.q=e.target.value;renderIList()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#showx').hidden)closeShow()});
+
+/* ============ INSTALAR (PWA) ============ */
+let installEvt=null;
+const isStandalone=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}catch(e){return false}};
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const isAndroid=/android/i.test(navigator.userAgent);
+function updateInstallBtn(){const b=$('#installBtn');if(b)b.hidden=isStandalone()||!(installEvt||isIOS||isAndroid)}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvt=e;updateInstallBtn()});
+window.addEventListener('appinstalled',()=>{installEvt=null;updateInstallBtn();toast('App instalado na tela inicial')});
+async function doInstall(){
+  if(installEvt){installEvt.prompt();try{await installEvt.userChoice}catch(e){}installEvt=null;updateInstallBtn();return}
+  const step=(n,ic,t,sub)=>`<div class="step"><div class="num">${n}</div><div><b>${icon(ic)} ${t}</b><div class="muted" style="font-size:13.5px">${sub}</div></div></div>`;
+  const body=isIOS
+    ?`<div class="howto">${step(1,'box-arrow-up','Toque em Compartilhar','O botão com a setinha para cima, na barra do Safari.')}${step(2,'plus-square','Adicionar à Tela de Início','Role a lista de opções até encontrar.')}${step(3,'check2-square','Toque em Adicionar','O ícone do app aparece na tela inicial.')}</div><p class="source m-0">No iPhone, use o Safari. Depois abra sempre pelo ícone: o app ocupa a tela inteira e funciona sem internet.</p>`
+    :`<div class="howto">${step(1,'three-dots-vertical','Abra o menu do navegador','Os três pontinhos no canto superior direito do Chrome.')}${step(2,'download','Instalar app','Em alguns aparelhos aparece como “Adicionar à tela inicial”.')}${step(3,'check2-square','Confirme','O ícone do app aparece junto com os outros apps.')}</div>`;
+  openSheet({eye:'Orlando 2027',title:'Instalar no celular',sub:'Fica com ícone próprio, em tela cheia e funcionando sem internet.',body});
+}
+
 /* ============ EVENTOS ============ */
 function addToPlan(i,id){const p=planOf(i).slice();if(!p.includes(id))p.push(id);put('plano:'+i,p);if(st(BYID[id])==='Wishlist')put('status:'+id,'Planejado')}
 document.addEventListener('click',e=>{
-  const t=e.target.closest('[data-fav],[data-open],[data-day],[data-go],[data-quick],[data-chip],[data-clear],[data-setst],[data-planplace],[data-plan],[data-unplan],[data-rate],[data-tgdel],[data-copy],[data-ckdel],[data-rename],[data-logout]');
+  const t=e.target.closest('[data-fav],[data-open],[data-day],[data-go],[data-quick],[data-chip],[data-clear],[data-setst],[data-planplace],[data-plan],[data-unplan],[data-rate],[data-tgdel],[data-copy],[data-ckdel],[data-rename],[data-logout],[data-say],[data-show],[data-ifav],[data-guia],[data-closeshow],[data-isec],[data-ichip],[data-install]');
   if(!t)return;const d=t.dataset;
+  if(d.install!==undefined){doInstall();return}
+  if(d.say){speak(FRBY[d.say]);return}
+  if(d.show){showPhrase(FRBY[d.show]);return}
+  if(d.closeshow!==undefined){closeShow();return}
+  if(d.ifav){IFAV.has(d.ifav)?IFAV.delete(d.ifav):IFAV.add(d.ifav);lsSet(IFAV_KEY,[...IFAV]);renderIList();return}
+  if(d.guia!==undefined){openGuia();return}
+  if(d.ichip){IST.sec=d.ichip;renderIngles();return}
+  if(d.isec){IST.sec=d.isec;IST.q='';if(sheetOpen())closeSheet();go('ingles');return}
   if(d.fav!==undefined){e.stopPropagation();const on=!isFav(d.fav);put('fav:'+d.fav,on);renderList();toast(on?'Favoritado':'Removido dos favoritos');return}
   if(d.ckdel){e.preventDefault();del('custom:'+d.ckdel);del('check:'+d.ckdel);renderCheck();return}
   if(d.copy!==undefined){e.preventDefault();copyText(d.copy,'Endereço copiado');return}
@@ -488,7 +574,14 @@ $('#lgForm').addEventListener('submit',async e=>{
   const btn=$('#lgBtn');btn.disabled=true;btn.textContent='Entrando…';
   const {error}=await SB.auth.signInWithPassword({email:CFG.familyEmail,password:code});
   btn.disabled=false;btn.textContent='Entrar';
-  if(error){showLogin(navigator.onLine?'Código incorreto. Confira com quem configurou o app.':'Sem internet. Conecte-se para entrar pela primeira vez.');return}
+  if(error){
+    const m=String(error.message||'');
+    let msg='Não foi possível entrar: '+m;
+    if(!navigator.onLine)msg='Sem internet. Conecte-se para entrar pela primeira vez.';
+    else if(/invalid login credentials/i.test(m))msg='Código incorreto (ou o usuário '+CFG.familyEmail+' não existe no Supabase).';
+    else if(/not confirmed/i.test(m))msg='O usuário da família ainda não foi confirmado no Supabase (Authentication → Users).';
+    else if(/api key|apikey|jwt|unauthorized/i.test(m))msg='A chave do config.js não foi aceita pelo Supabase. Confira supabaseAnonKey.';
+    showLogin(msg);return}
   ME=name;lsSet(LS.me,ME);$('#lgCode').value='';$('#login').hidden=true;startLive();
 });
 async function logout(){
@@ -519,7 +612,8 @@ setInterval(flush,30000);
 
 let start=(location.hash||'').slice(1);
 if(!VIEWS.includes(start))start=lsGet(LS.tab,'hoje');
-go(start,false);updateSync();
+go(start,false);updateSync();updateInstallBtn();
+$('#lgScene').innerHTML=sceneDeco()+'<div class="top"><div class="kick">Era uma vez…</div><div class="title">uma viagem em família</div></div><div class="bottom"></div>';
 
 (async()=>{
   if(!CONFIGURED)return;
