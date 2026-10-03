@@ -262,8 +262,7 @@ body{
 }
 body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.55;
   background-image:radial-gradient(1.4px 1.4px at 12% 18%,#fff,transparent),radial-gradient(1.2px 1.2px at 68% 8%,#fff,transparent),radial-gradient(1.6px 1.6px at 88% 32%,#fff,transparent),radial-gradient(1.2px 1.2px at 32% 46%,#fff,transparent),radial-gradient(1.4px 1.4px at 54% 72%,#fff,transparent),radial-gradient(1.2px 1.2px at 8% 84%,#fff,transparent),radial-gradient(1.6px 1.6px at 92% 90%,#fff,transparent)}
-.wrap,.tabbar,.offcanvas,.login,.showx,.toastx{position:relative;z-index:1}
-.tabbar,.offcanvas,.login,.showx,.toastx{position:fixed}
+.wrap{position:relative;z-index:1}
 
 /* topo */
 .appbar{background:rgba(246,242,255,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);margin-inline:-16px;padding-inline:16px;border-bottom:1px solid rgba(230,223,248,.7)}
